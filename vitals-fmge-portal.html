@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VITALS — FMGE Command Center</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VITALS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0A0E12">
+<meta name="description" content="Elite FMGE Study Portal — 8-week timetable, AI tutor, spaced repetition, mistake notebook.">
+<link rel="manifest" id="pwa-manifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0E12;
+  --surface:#11161D;
+  --surface2:#161D26;
+  --border:#232B36;
+  --text:#E8EDF2;
+  --muted:#8A97A6;
+  --teal:#21C7B0;
+  --teal-dim:rgba(33,199,176,0.12);
+  --amber:#F2A93B;
+  --amber-dim:rgba(242,169,59,0.12);
+  --red:#E2473A;
+  --red-dim:rgba(226,71,58,0.12);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+.font-display{font-family:'Space Grotesk',sans-serif;}
+.font-mono{font-family:'IBM Plex Mono',monospace;}
+::selection{background:var(--teal-dim);}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+a{color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+
+/* layout */
+#app{display:flex;min-height:100vh;}
+.sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 10px 22px;}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--teal),#0B8E7E);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Space Grotesk';color:#06141A;font-size:15px;flex-shrink:0;}
+.brand-text{font-family:'Space Grotesk';font-weight:700;font-size:15px;letter-spacing:0.04em;}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-top:1px;}
+
+.navgroup{margin-top:6px;}
+.navlabel{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);padding:14px 12px 6px;}
+.navitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;color:var(--muted);margin-bottom:2px;transition:background .15s,color .15s;border:none;background:transparent;width:100%;text-align:left;}
+.navitem:hover{background:var(--surface2);color:var(--text);}
+.navitem.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+.navitem .ico{width:18px;text-align:center;font-size:14px;flex-shrink:0;}
+
+.sidebar-foot{margin-top:auto;padding:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* vitals strip */
+.vitals{position:sticky;top:0;z-index:20;background:rgba(10,14,18,0.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:12px 26px;display:flex;align-items:center;gap:28px;overflow-x:auto;}
+.vital{display:flex;flex-direction:column;gap:2px;min-width:max-content;}
+.vital-label{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.vital-value{font-family:'IBM Plex Mono';font-size:18px;font-weight:600;color:var(--text);}
+.vital-value.teal{color:var(--teal);}
+.vital-value.amber{color:var(--amber);}
+.vital-divider{width:1px;height:28px;background:var(--border);flex-shrink:0;}
+.scanline-wrap{flex:1;height:24px;position:relative;overflow:hidden;min-width:120px;}
+.scanline-wrap svg{width:100%;height:100%;}
+.scan-path{fill:none;stroke:var(--teal);stroke-width:1.5;opacity:0.55;}
+.scan-dot{fill:var(--teal);filter:drop-shadow(0 0 4px var(--teal));}
+
+/* content */
+.content{padding:26px 30px 60px;max-width:1180px;width:100%;margin:0 auto;}
+.page{animation:fadein .35s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+.h1{font-family:'Space Grotesk';font-size:26px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;}
+.h2{font-family:'Space Grotesk';font-size:16px;font-weight:600;margin:0 0 2px;}
+.sub{color:var(--muted);font-size:13px;margin:0 0 22px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.card.glass{background:rgba(17,22,29,0.6);backdrop-filter:blur(10px);}
+.grid{display:grid;gap:14px;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:900px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr;} .sidebar{display:none;} .content{padding:18px 14px 50px;}}
+
+.statcard{padding:16px 18px;}
+.statcard .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+.statcard .val{font-family:'IBM Plex Mono';font-size:26px;font-weight:600;}
+.statcard .delta{font-size:11.5px;color:var(--muted);margin-top:6px;}
+
+.pillbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+.pill{padding:6px 13px;border-radius:20px;font-size:12.5px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .15s;}
+.pill.active{background:var(--teal-dim);border-color:var(--teal);color:var(--teal);font-weight:600;}
+.pill:hover{color:var(--text);}
+
+.progress-track{height:8px;background:var(--surface2);border-radius:5px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--teal),#5EE8D5);transition:width .4s ease;}
+.progress-fill.amber{background:linear-gradient(90deg,var(--amber),#FFD27D);}
+
+.badge{font-size:10px;padding:2px 8px;border-radius:5px;font-weight:600;letter-spacing:0.03em;}
+.badge.hy{background:var(--amber-dim);color:var(--amber);}
+.badge.ly{background:var(--surface2);color:var(--muted);}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;transition:all .15s;}
+.btn:hover{border-color:var(--teal);color:var(--teal);}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#06141A;}
+.btn.primary:hover{background:#28E0C6;color:#06141A;}
+.btn.danger:hover{border-color:var(--red);color:var(--red);}
+.btn:disabled{opacity:0.45;cursor:not-allowed;}
+.btn.sm{padding:6px 11px;font-size:12px;}
+
+select,input[type=text],input[type=date],textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;width:100%;}
+select:focus,input:focus,textarea:focus{border-color:var(--teal);}
+label.field-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:5px;}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:18px 0;}
+
+/* checkbox */
+.chk{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border);background:var(--surface2);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
+.chk.done{background:var(--teal);border-color:var(--teal);}
+.chk.done::after{content:'✓';font-size:11px;color:#06141A;font-weight:700;}
+
+/* tables */
+table.imap{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.imap th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);}
+table.imap td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.45;}
+table.imap tr:hover td{background:var(--surface2);}
+table.imap td.sys{font-weight:600;color:var(--teal);white-space:nowrap;}
+
+/* timetable */
+.week-card{margin-bottom:14px;}
+.week-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.week-head .meta{display:flex;align-items:center;gap:12px;}
+.weeknum{font-family:'IBM Plex Mono';font-size:12px;color:var(--teal);background:var(--teal-dim);padding:3px 9px;border-radius:6px;}
+.day-block{border-top:1px solid var(--border);padding:14px 2px 4px;}
+.day-title{font-family:'Space Grotesk';font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.slot-row{display:flex;align-items:flex-start;gap:10px;padding:6px 4px;border-radius:7px;}
+.slot-row:hover{background:var(--surface2);}
+.slot-time{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--muted);min-width:78px;padding-top:1px;}
+.slot-text{font-size:12.8px;line-height:1.4;flex:1;}
+.slot-text.done{color:var(--muted);text-decoration:line-through;}
+.chev{transition:transform .2s;color:var(--muted);}
+.chev.open{transform:rotate(90deg);}
+
+/* topics tree */
+.topic-row{border-bottom:1px solid var(--border);}
+.topic-head{display:flex;align-items:center;justify-content:space-between;padding:13px 4px;cursor:pointer;}
+.topic-head .left{display:flex;align-items:center;gap:10px;}
+.sub-row{display:flex;align-items:center;gap:10px;padding:8px 4px 8px 30px;}
+.sub-row:hover{background:var(--surface2);border-radius:8px;}
+
+/* flashcard */
+.flash{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:22px;min-height:130px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14.5px;line-height:1.5;cursor:pointer;transition:border-color .2s;}
+.flash:hover{border-color:var(--teal);}
+
+.tag{display:inline-block;font-size:11px;padding:3px 9px;border-radius:6px;background:var(--surface2);color:var(--muted);margin-right:6px;}
+
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.toast{position:fixed;bottom:80px;right:16px;background:var(--surface2);border:1px solid var(--teal);color:var(--text);padding:11px 18px;border-radius:10px;font-size:13px;z-index:200;animation:fadein .25s ease;box-shadow:0 8px 30px rgba(0,0,0,0.4);}
+
+/* ── Mobile bottom nav ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;background:rgba(17,22,29,0.96);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:8px 4px calc(8px + env(safe-area-inset-bottom));display:none;justify-content:space-around;align-items:center;}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:10px;border:none;background:transparent;color:var(--muted);font-size:10px;font-family:inherit;cursor:pointer;min-width:52px;transition:color .15s;}
+.bnav-item .bico{font-size:18px;line-height:1;}
+.bnav-item.active{color:var(--teal);}
+.bnav-item:hover{color:var(--text);}
+@media(max-width:600px){
+  .sidebar{display:none!important;}
+  .bottom-nav{display:flex!important;}
+  .main{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
+  .vitals{padding:10px 14px;}
+  .content{padding:16px 14px 80px;}
+  .grid-4,.grid-3{grid-template-columns:1fr 1fr;}
+  .grid-2{grid-template-columns:1fr;}
+  table.imap{font-size:11px;}
+  table.imap td,table.imap th{padding:6px 5px;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script id="data-script">
+const SUBJECTS = {
+  anatomy:      {label:"Anatomy",      icon:"🦴", color:"#21C7B0"},
+  physiology:   {label:"Physiology",   icon:"🫀", color:"#5EE8D5"},
+  pathology:    {label:"Pathology",    icon:"🔬", color:"#F2A93B"},
+  pharmacology: {label:"Pharmacology", icon:"💊", color:"#E2473A"},
+  microbiology: {label:"Microbiology", icon:"🦠", color:"#9B8CF2"}
+};
+
+const TOPICS = {
+anatomy:[
+  {name:"General Anatomy & Embryology", subs:[
+    {n:"Basic embryology — germ layers, gastrulation",hy:1},
+    {n:"Branchial apparatus & arches",hy:1},
+    {n:"Heart & gut development",hy:1},
+    {n:"General histology overview",hy:0}]},
+  {name:"Upper Limb", subs:[
+    {n:"Shoulder region & axilla",hy:1},
+    {n:"Brachial plexus",hy:1},
+    {n:"Forearm muscles & nerve injuries",hy:1},
+    {n:"Hand & carpal tunnel",hy:1},
+    {n:"Cutaneous innervation / dermatomes",hy:0}]},
+  {name:"Lower Limb", subs:[
+    {n:"Femoral triangle & femoral nerve",hy:1},
+    {n:"Sciatic nerve & foot drop",hy:1},
+    {n:"Hip joint & gluteal region",hy:0},
+    {n:"Venous drainage / varicose veins",hy:0}]},
+  {name:"Thorax", subs:[
+    {n:"Heart chambers & great vessels",hy:1},
+    {n:"Coronary circulation",hy:1},
+    {n:"Mediastinum subdivisions",hy:1},
+    {n:"Lung lobes & bronchopulmonary segments",hy:1},
+    {n:"Diaphragm & thoracic wall",hy:0}]},
+  {name:"Abdomen", subs:[
+    {n:"Peritoneum & lesser sac",hy:0},
+    {n:"Portal vein & portosystemic anastomosis",hy:1},
+    {n:"Inguinal canal & hernia sites",hy:1},
+    {n:"Liver segments & biliary tree",hy:1},
+    {n:"Stomach & duodenum relations",hy:0}]},
+  {name:"Pelvis & Perineum", subs:[
+    {n:"Ureter course & relations",hy:1},
+    {n:"Pelvic diaphragm",hy:0},
+    {n:"Pudendal nerve & perineal spaces",hy:0}]},
+  {name:"Head & Neck", subs:[
+    {n:"Cranial nerves — course & lesions",hy:1},
+    {n:"Triangles of the neck",hy:1},
+    {n:"Skull foramina & contents",hy:1},
+    {n:"Thyroid gland relations",hy:1},
+    {n:"Cavernous sinus & pterygopalatine fossa",hy:0}]},
+  {name:"Neuroanatomy", subs:[
+    {n:"Spinal cord tracts",hy:1},
+    {n:"Brainstem cross-sections",hy:1},
+    {n:"Ventricular system & CSF circulation",hy:1},
+    {n:"Blood supply of brain / Circle of Willis",hy:1},
+    {n:"Basal ganglia & cerebellum circuits",hy:0}]},
+  {name:"Special Senses", subs:[
+    {n:"Visual pathway & eyeball anatomy",hy:1},
+    {n:"Ear anatomy",hy:0}]}
+],
+physiology:[
+  {name:"General & Cell Physiology", subs:[
+    {n:"Membrane transport mechanisms",hy:1},
+    {n:"Resting membrane potential & action potential",hy:1},
+    {n:"Genetics relevant to physiology",hy:0}]},
+  {name:"Nerve & Muscle", subs:[
+    {n:"Neuromuscular junction & transmission",hy:1},
+    {n:"Skeletal muscle contraction mechanism",hy:1},
+    {n:"Smooth & cardiac muscle physiology",hy:0}]},
+  {name:"Blood", subs:[
+    {n:"Hemostasis & coagulation cascade",hy:1},
+    {n:"Blood groups & transfusion physiology",hy:1},
+    {n:"Erythropoiesis & anemia physiology",hy:0}]},
+  {name:"Cardiovascular System", subs:[
+    {n:"Cardiac cycle & heart sounds",hy:1},
+    {n:"ECG basics & interpretation",hy:1},
+    {n:"Cardiac output & venous return",hy:1},
+    {n:"Regulation of blood pressure / baroreceptors",hy:1}]},
+  {name:"Respiratory System", subs:[
+    {n:"Lung volumes & spirometry",hy:1},
+    {n:"O2–CO2 transport & Hb dissociation curve",hy:1},
+    {n:"Control of respiration",hy:1},
+    {n:"Ventilation-perfusion concepts",hy:0}]},
+  {name:"Renal System", subs:[
+    {n:"GFR & renal clearance",hy:1},
+    {n:"Renal regulation of acid-base balance",hy:1},
+    {n:"Countercurrent multiplier mechanism",hy:0}]},
+  {name:"Gastrointestinal System", subs:[
+    {n:"GI hormones",hy:1},
+    {n:"Digestion & absorption",hy:0},
+    {n:"GI motility reflexes",hy:0}]},
+  {name:"Endocrine System", subs:[
+    {n:"Hypothalamo-pituitary-thyroid axis",hy:1},
+    {n:"Adrenal cortex & cortisol",hy:1},
+    {n:"Pancreatic hormones / insulin physiology",hy:1},
+    {n:"Growth hormone & calcium homeostasis",hy:0}]},
+  {name:"Central Nervous System", subs:[
+    {n:"Reflex arcs & spinal reflexes",hy:1},
+    {n:"Sensory & motor pathways",hy:1},
+    {n:"Hypothalamus functions",hy:1},
+    {n:"Sleep physiology & EEG",hy:0}]},
+  {name:"Reproductive System", subs:[
+    {n:"Menstrual cycle hormonal regulation",hy:1},
+    {n:"Spermatogenesis & male hormones",hy:0},
+    {n:"Pregnancy physiology basics",hy:0}]},
+  {name:"Special Senses", subs:[
+    {n:"Vision — phototransduction",hy:0},
+    {n:"Hearing & vestibular physiology",hy:0}]}
+],
+pathology:[
+  {name:"General Pathology — Cell Injury", subs:[
+    {n:"Cell injury, necrosis, apoptosis",hy:1},
+    {n:"Cellular adaptations & calcification",hy:0}]},
+  {name:"Inflammation & Repair", subs:[
+    {n:"Acute & chronic inflammation",hy:1},
+    {n:"Wound healing & repair",hy:1},
+    {n:"Granulomatous inflammation",hy:1}]},
+  {name:"Hemodynamic Disorders", subs:[
+    {n:"Thrombosis & embolism",hy:1},
+    {n:"Shock & infarction",hy:1},
+    {n:"Edema mechanisms",hy:0}]},
+  {name:"Neoplasia", subs:[
+    {n:"Carcinogenesis & nomenclature",hy:1},
+    {n:"Tumor grading, staging & markers",hy:1},
+    {n:"Metastasis mechanisms",hy:0}]},
+  {name:"Immunopathology", subs:[
+    {n:"Hypersensitivity reactions (I–IV)",hy:1},
+    {n:"Autoimmune disease overview",hy:0}]},
+  {name:"Hematology", subs:[
+    {n:"Anemias — classification",hy:1},
+    {n:"Leukemias & lymphomas",hy:1},
+    {n:"Bleeding disorders",hy:1}]},
+  {name:"Cardiovascular Pathology", subs:[
+    {n:"Atherosclerosis & ischemic heart disease",hy:1},
+    {n:"Rheumatic heart disease & infective endocarditis",hy:1},
+    {n:"Cardiomyopathies & myocarditis",hy:0}]},
+  {name:"Respiratory Pathology", subs:[
+    {n:"Tuberculosis pathology",hy:1},
+    {n:"COPD / emphysema / asthma",hy:1},
+    {n:"Lung carcinoma",hy:1}]},
+  {name:"GIT & Liver Pathology", subs:[
+    {n:"Peptic ulcer & gastric carcinoma",hy:1},
+    {n:"Viral hepatitis & cirrhosis",hy:1},
+    {n:"Colorectal carcinoma",hy:1}]},
+  {name:"Renal Pathology", subs:[
+    {n:"Glomerulonephritis — types",hy:1},
+    {n:"CKD & renal cell carcinoma",hy:0}]},
+  {name:"Endocrine Pathology", subs:[
+    {n:"Thyroid tumors",hy:1},
+    {n:"Diabetes mellitus pathology",hy:1}]},
+  {name:"CNS Pathology", subs:[
+    {n:"CNS tumors (astrocytoma, meningioma)",hy:1},
+    {n:"Stroke pathology",hy:1}]},
+  {name:"MSK & Soft Tissue", subs:[
+    {n:"Osteosarcoma & Ewing's sarcoma",hy:1},
+    {n:"Bone tumor overview",hy:0}]},
+  {name:"Gynec & Breast Pathology", subs:[
+    {n:"Cervical carcinoma & CIN",hy:1},
+    {n:"Breast carcinoma",hy:1}]},
+  {name:"Lymphoreticular", subs:[
+    {n:"Hodgkin lymphoma",hy:1},
+    {n:"Non-Hodgkin lymphoma",hy:1}]}
+],
+pharmacology:[
+  {name:"General Pharmacology", subs:[
+    {n:"Pharmacokinetics — ADME",hy:1},
+    {n:"Drug interactions & adverse reactions",hy:1},
+    {n:"Routes of administration",hy:0}]},
+  {name:"Autonomic Nervous System", subs:[
+    {n:"Cholinergics & anticholinergics",hy:1},
+    {n:"Adrenergics & antiadrenergics",hy:1}]},
+  {name:"Cardiovascular Drugs", subs:[
+    {n:"Antihypertensives",hy:1},
+    {n:"Antianginals & antiarrhythmics",hy:1},
+    {n:"Anticoagulants & antiplatelets",hy:1},
+    {n:"Drugs for heart failure",hy:1},
+    {n:"Lipid lowering drugs",hy:0}]},
+  {name:"Respiratory Drugs", subs:[
+    {n:"Bronchodilators & anti-asthmatics",hy:1},
+    {n:"Anti-tubercular drugs",hy:1}]},
+  {name:"Renal / Diuretics", subs:[
+    {n:"Diuretic classes & clinical use",hy:1}]},
+  {name:"GIT Drugs", subs:[
+    {n:"Antiulcer drugs & PPIs",hy:1},
+    {n:"Antiemetics",hy:0}]},
+  {name:"Endocrine Drugs", subs:[
+    {n:"Insulin & oral hypoglycemics",hy:1},
+    {n:"Corticosteroids",hy:1},
+    {n:"Thyroid drugs",hy:0}]},
+  {name:"CNS Drugs", subs:[
+    {n:"Antiepileptics",hy:1},
+    {n:"Antipsychotics & antidepressants",hy:1},
+    {n:"General anesthetics",hy:1},
+    {n:"Opioid analgesics",hy:1}]},
+  {name:"Chemotherapy & Antimicrobials", subs:[
+    {n:"Beta-lactams & cell-wall antibiotics",hy:1},
+    {n:"Antifungal & antiviral drugs",hy:1},
+    {n:"Anticancer drug classes",hy:0}]},
+  {name:"Autacoids & Analgesics", subs:[
+    {n:"NSAIDs & DMARDs",hy:1}]}
+],
+microbiology:[
+  {name:"General Microbiology", subs:[
+    {n:"Bacterial structure & growth",hy:1},
+    {n:"Sterilization & disinfection",hy:1},
+    {n:"Bacterial genetics",hy:0}]},
+  {name:"Immunology", subs:[
+    {n:"Hypersensitivity reactions",hy:1},
+    {n:"Complement system",hy:0},
+    {n:"Vaccines",hy:1}]},
+  {name:"Systemic Bacteriology", subs:[
+    {n:"Staphylococcus & Streptococcus",hy:1},
+    {n:"Mycobacterium tuberculosis",hy:1},
+    {n:"Enterobacteriaceae",hy:1},
+    {n:"Clostridium species",hy:1},
+    {n:"Spirochetes",hy:0}]},
+  {name:"Virology", subs:[
+    {n:"Hepatitis viruses A–E",hy:1},
+    {n:"HIV",hy:1},
+    {n:"Herpesviruses",hy:1},
+    {n:"Respiratory viruses",hy:0}]},
+  {name:"Mycology", subs:[
+    {n:"Candida & systemic fungi",hy:1},
+    {n:"Dermatophytes",hy:0}]},
+  {name:"Parasitology", subs:[
+    {n:"Malaria — Plasmodium",hy:1},
+    {n:"Entamoeba & intestinal protozoa",hy:1},
+    {n:"Helminths",hy:0}]},
+  {name:"Applied / Clinical Microbiology", subs:[
+    {n:"Antimicrobial resistance mechanisms",hy:1},
+    {n:"Hospital-acquired infections",hy:0}]}
+]
+};
+
+const FIXED_BLOCKS = [
+  {time:"6:30–7:00",   label:"Startup Routine",            fixed:true},
+  {time:"7:00–9:00",   label:"Deep Concept Block 1"},
+  {time:"9:15–11:15",  label:"Deep Concept Block 2"},
+  {time:"11:30–12:30", label:"Same-Day Revision"},
+  {time:"13:30–15:00", label:"Deep Concept Block 3"},
+  {time:"15:15–16:45", label:"MCQ Block"},
+  {time:"17:00–18:30", label:"Clinical Integration / PYQ"},
+  {time:"19:30–20:30", label:"Active Recall (Night)"},
+  {time:"20:30–21:00", label:"Mistake Log + Plan Tomorrow", fixed:true}
+];
+
+function dr(m,mi,a,intg){ return [m,mi,a,intg]; }
+const WEEKS = [
+{n:1,title:"Foundation — Anatomy & Physiology Base",focus:"General Anatomy, Upper/Lower Limb · General Physiology & Blood · General Pathology-1",
+ days:{
+  Mon:dr("Anatomy — General anatomy & embryology basics","Physiology — Cell physiology, RMP/action potential","Pathology — Cell injury & adaptation","How cell injury underlies all disease — preview link to pharmacology MOA later"),
+  Tue:dr("Anatomy — Upper limb: shoulder & axilla","Physiology — Nerve-muscle physiology, NMJ","Pathology — Acute & chronic inflammation","NMJ physiology ↔ pharmacology of NMJ blockers (preview)"),
+  Wed:dr("Anatomy — Upper limb: brachial plexus (HY)","Physiology — Blood: hemostasis & coagulation","Pathology — Inflammation: healing & repair","Coagulation cascade ↔ anticoagulant drug targets (preview)"),
+  Thu:dr("Anatomy — Upper limb: forearm muscles & nerve injuries","Physiology — Blood groups & transfusion","Pathology — Necrosis, gangrene, calcification","Nerve injury patterns: anatomy + clinical correlation (claw hand, wrist drop)"),
+  Fri:dr("Anatomy — Hand & carpal tunnel (HY)","Physiology — Erythropoiesis & anemia physiology","Pathology — Neoplasia: nomenclature & carcinogenesis","Carpal tunnel: anatomy + clinical exam correlation"),
+  Sat:dr("Anatomy — Lower limb: femoral triangle, hip","Physiology — Recap: cell, nerve-muscle, blood","Pathology — Neoplasia: grading, staging, markers","Full recap day — cross-link everything covered in Week 1")
+ }, sunday:"Revision + Mini-test: Upper Limb Anatomy + General Physiology + General Pathology-1 + mistake log clearance"},
+
+{n:2,title:"Thorax/Abdomen Anatomy + CVS/Resp Physiology + General Pharm & Micro Begin",focus:"Thorax & Abdomen Anatomy · CVS/Resp Physiology · General Pathology-2 · General Pharmacology · General Microbiology",
+ days:{
+  Mon:dr("Anatomy — Thorax: heart chambers & great vessels (HY)","Physiology — Cardiac cycle, ECG basics (HY)","Pharmacology — Pharmacokinetics: absorption & distribution (HY)","Heart anatomy ↔ ECG correlation ↔ drug distribution basics"),
+  Tue:dr("Anatomy — Thorax: mediastinum, lung lobes/segments (HY)","Physiology — Cardiac output & regulation (HY)","Pharmacology — Pharmacokinetics: metabolism, excretion, half-life","Microbiology — Bacterial structure, growth, sterilization (HY)"),
+  Wed:dr("Anatomy — Thorax: diaphragm, thoracic wall","Physiology — Lung volumes/spirometry (HY)","Pathology — Hemodynamics: thrombosis, embolism (HY)","Sterilization techniques ↔ hospital infection prevention"),
+  Thu:dr("Anatomy — Abdomen: peritoneum, portal system (HY)","Physiology — O2–CO2 transport, Hb dissociation curve (HY)","Pathology — Hemodynamics: shock, infarction (HY)","Portal HTN: anatomy + pathology link (preview cirrhosis)"),
+  Fri:dr("Anatomy — Abdomen: inguinal canal, hernia sites (HY)","Physiology — Control of respiration","Pathology — Immunopathology: hypersensitivity reactions (HY)","Microbiology — Immunology basics: complement, vaccines"),
+  Sat:dr("Anatomy — Abdomen: liver segments, biliary tree (HY)","Physiology — Recap CVS + Resp","Pathology — Recap General Path 1+2","Full recap — CVS/Resp anatomy+physio+patho cross-links")
+ }, sunday:"Revision + Mini-test: Thorax/Abdomen Anatomy + CVS/Resp Physiology + General Pathology + mistake log clearance"},
+
+{n:3,title:"CVS System Block — Full 5-Subject Integration",focus:"Cardiovascular system across Anatomy, Physiology, Pathology, Pharmacology, Microbiology",
+ days:{
+  Mon:dr("Anatomy — Recap heart anatomy + coronary circulation","Physiology — BP regulation, baroreceptor reflex (HY)","Pathology — Atherosclerosis & ischemic heart disease (HY)","Coronary anatomy → IHD pathology → angina pharmacology (full chain)"),
+  Tue:dr("Pharmacology — Antianginals & antiarrhythmics (HY)","Pharmacology — Antihypertensives (HY)","Pathology — Rheumatic heart disease & infective endocarditis (HY)","Microbiology — Streptococcus & IE-causing organisms (HY)"),
+  Wed:dr("Pharmacology — Anticoagulants & antiplatelets (HY)","Pharmacology — Drugs for heart failure (HY)","Pathology — Cardiomyopathies, myocarditis","Coagulation physiology → thrombus pathology → anticoagulant pharmacology"),
+  Thu:dr("Pathology — Congenital heart disease basics","Pharmacology — Lipid lowering drugs (statins)","Microbiology — Culture & diagnosis of endocarditis","Full CVS case discussion — MCQ based"),
+  Fri:dr("Revision — Anatomy + Physiology CVS recall (blank sheet)","Revision — Pathology CVS recall (blank sheet)","Revision — Pharmacology CVS recall (blank sheet)","Build one CVS flowchart spanning all 5 subjects"),
+  Sat:dr("MCQ marathon — CVS (100 MCQs, mixed subjects)","Mistake review — CVS wrong questions","Clinical cases — CVS (5 vignettes)","Weak-topic triage for CVS")
+ }, sunday:"CVS Grand Test (all 5 subjects) + full mistake-log clearance"},
+
+{n:4,title:"Respiratory + Renal System Block",focus:"Respiratory & Renal systems across all 5 subjects",
+ days:{
+  Mon:dr("Pathology — TB pathology (HY very)","Pharmacology — Anti-tubercular drugs (HY very)","Microbiology — Mycobacterium tuberculosis (HY very)","TB: organism → pathology → drug regimen (DOTS), full chain"),
+  Tue:dr("Pathology — COPD, emphysema, asthma","Pharmacology — Bronchodilators & anti-asthmatics (HY)","Physiology — Recap respiratory physiology","Obstructive lung disease: physio + patho + pharma"),
+  Wed:dr("Pathology — Lung carcinoma (HY)","Microbiology — Respiratory pathogens (pneumonia organisms)","Anatomy — Recap renal anatomy, ureter course (HY)","Lung cancer risk factors + paraneoplastic syndromes"),
+  Thu:dr("Physiology — GFR & renal clearance (HY)","Pathology — Glomerulonephritis types (HY)","Pharmacology — Diuretics (HY)","Nephron physiology → GN pathology → diuretic pharmacology"),
+  Fri:dr("Microbiology — UTI organisms, E. coli (HY)","Pathology — CKD, renal cell carcinoma","Physiology — Renal acid-base regulation (HY)","UTI: organism → clinical picture → antibiotic choice"),
+  Sat:dr("MCQ marathon — Resp + Renal (100 MCQs)","Mistake review — Resp + Renal","Clinical cases — Resp + Renal (5 vignettes)","Weak-topic triage")
+ }, sunday:"Respiratory + Renal Grand Test + mistake-log clearance"},
+
+{n:5,title:"GIT + Endocrine + Hematology Block",focus:"GIT, Endocrine & Hematology across all 5 subjects",
+ days:{
+  Mon:dr("Anatomy — Recap GIT viscera & blood supply","Pathology — Peptic ulcer, gastric carcinoma (HY)","Pharmacology — Antiulcer drugs, PPIs (HY)","Acid-peptic disease: physio + patho + pharma chain"),
+  Tue:dr("Pathology — Viral hepatitis (HY very)","Microbiology — Hepatitis viruses A–E (HY very)","Pharmacology — Drugs for hepatitis / antivirals","Hepatitis: virus → pathology → serology → treatment"),
+  Wed:dr("Pathology — Cirrhosis, portal hypertension (HY)","Pathology — Colorectal carcinoma (HY)","Microbiology — Enteric bacteria & Entamoeba (HY)","Diarrheal disease: organism → pathology → treatment"),
+  Thu:dr("Physiology — Thyroid axis, adrenal/cortisol (HY)","Pathology — Thyroid tumors, DM pathology (HY)","Pharmacology — Insulin, hypoglycemics, corticosteroids (HY)","Diabetes: physio + patho + pharma full chain"),
+  Fri:dr("Physiology — Recap hematology & hemostasis","Pathology — Anemias, leukemias, lymphomas (HY)","Pharmacology — Hematinics, anticancer basics","Anemia workup: physio + patho + lab correlation"),
+  Sat:dr("MCQ marathon — GIT+Endocrine+Heme (100 MCQs)","Mistake review","Clinical cases (5 vignettes)","Weak-topic triage")
+ }, sunday:"GIT + Endocrine + Hematology Grand Test + mistake-log clearance"},
+
+{n:6,title:"CNS + MSK + Reproductive Block",focus:"CNS, MSK & Reproductive systems across all 5 subjects",
+ days:{
+  Mon:dr("Anatomy — Cranial nerves (HY very)","Physiology — Reflexes, sensory/motor pathways (HY)","Pathology — Stroke, CNS tumors (HY)","Cranial nerve lesions: anatomy + clinical exam"),
+  Tue:dr("Anatomy — Brainstem cross-sections, spinal tracts (HY)","Pharmacology — Antiepileptics (HY)","Pharmacology — Antipsychotics & antidepressants (HY)","Seizure: physio + patho + pharma full chain"),
+  Wed:dr("Pharmacology — General anesthetics, opioid analgesics (HY)","Microbiology — CNS infections / meningitis organisms (HY)","Pathology — Demyelinating & infectious CNS disease","Meningitis: organism → CSF findings → antibiotic choice"),
+  Thu:dr("Pathology — Bone tumors: osteosarcoma, Ewing's (HY)","Pharmacology — NSAIDs & DMARDs (HY)","Anatomy — MSK recap: joints, nerve injuries","Bone tumor: imaging + pathology + pharma for pain control"),
+  Fri:dr("Physiology — Menstrual cycle regulation (HY)","Pathology — Cervical carcinoma, CIN, breast carcinoma (HY)","Microbiology — STIs, HPV (HY)","Cervical cancer: virus → pathology → screening → prevention"),
+  Sat:dr("MCQ marathon — CNS+MSK+Repro (100 MCQs)","Mistake review","Clinical cases (5 vignettes)","Weak-topic triage")
+ }, sunday:"CNS + MSK + Reproductive Grand Test + mistake-log clearance"},
+
+{n:7,title:"Infection / Immunology + Antimicrobials + Remaining Topics",focus:"Systemic Microbiology, Antimicrobial Pharmacology, Immunology + closing gaps",
+ days:{
+  Mon:dr("Microbiology — Staphylococcus, Streptococcus detail (HY)","Pharmacology — Beta-lactams & cell-wall antibiotics (HY very)","Pathology — Recap immunopathology/hypersensitivity","Antibiotic mechanism ↔ resistance ↔ organism"),
+  Tue:dr("Microbiology — HIV, herpesviruses (HY very)","Pharmacology — Antiviral & antiretroviral drugs (HY)","Pathology — Recap lymphoreticular pathology","HIV: virology + immunology + pharma full chain"),
+  Wed:dr("Microbiology — Malaria, Plasmodium (HY very)","Pharmacology — Antimalarials, antiparasitics (HY)","Anatomy/Physiology — Special senses recap (eye, ear)","Malaria: parasite life cycle → clinical picture → drug choice"),
+  Thu:dr("Microbiology — Candida, systemic fungi, dermatophytes","Pharmacology — Antifungal drugs (HY)","Pathology — Skin pathology basics","Fungal infection: host factors + organism + drug"),
+  Fri:dr("Microbiology — Antimicrobial resistance mechanisms (HY)","Pharmacology — Anticancer drug classes overview","Anatomy/Physiology — Remaining gaps from Weeks 1–6 checklist","Full immunology/infection flowchart spanning all 5 subjects"),
+  Sat:dr("MCQ marathon — Micro+Pharma+Immunology (100 MCQs)","Mistake review","Clinical cases (5 vignettes)","Final weak-topic triage before grand revision week")
+ }, sunday:"Microbiology + Immunology Grand Test + mistake-log clearance"},
+
+{n:8,title:"Grand Revision & Mock Test Week",focus:"Full-spectrum rapid revision + 5 full-length mock tests + total mistake-notebook clearance",
+ days:{
+  Mon:dr("Anatomy — Full rapid revision (HY topics only)","Physiology — Full rapid revision (HY topics only)","Mock Test 1 — Full length, all subjects","Error analysis from Mock 1"),
+  Tue:dr("Pathology — Full rapid revision (HY topics only)","Pharmacology — Full rapid revision (HY topics only)","Mock Test 2 — Full length, all subjects","Error analysis from Mock 2"),
+  Wed:dr("Microbiology — Full rapid revision (HY topics only)","Mistake notebook — complete clearance pass 1","Mock Test 3 — Full length, all subjects","Error analysis from Mock 3"),
+  Thu:dr("Weak-subject deep-dive #1 (based on mock scores)","Weak-subject deep-dive #2 (based on mock scores)","Mock Test 4 — Full length, all subjects","Error analysis from Mock 4"),
+  Fri:dr("Rapid-fire HY revision: Anatomy + Physiology","Rapid-fire HY revision: Pathology + Pharmacology","Rapid-fire HY revision: Microbiology","Final flowchart review — all systems"),
+  Sat:dr("Mock Test 5 — Full length, simulate exam timing","Error analysis from Mock 5","Mistake notebook — final clearance pass","Confidence recap of strongest topics")
+ }, sunday:"Light revision only — high-yield recall, early rest, exam-eve mindset reset. No new content."}
+];
+
+const INTEGRATION_MAP = [
+ {sys:"General Principles", a:"Embryology, basic histology", p:"Cell physiology, membrane transport", pa:"Cell injury, inflammation, neoplasia", ph:"Pharmacokinetics, ADR, drug interactions", m:"Bacterial structure, sterilization, immunology basics"},
+ {sys:"Cardiovascular", a:"Heart chambers, great vessels, coronary circulation", p:"Cardiac cycle, ECG, BP regulation", pa:"Atherosclerosis, IHD, RHD, endocarditis", ph:"Antihypertensives, antianginals, anticoagulants, HF drugs", m:"Streptococcus, organisms causing infective endocarditis"},
+ {sys:"Respiratory", a:"Lung lobes, bronchopulmonary segments, mediastinum", p:"Lung volumes, gas transport, control of breathing", pa:"TB, COPD, lung carcinoma", ph:"Bronchodilators, anti-TB drugs", m:"Mycobacterium TB, pneumonia-causing organisms"},
+ {sys:"Renal", a:"Ureter course, kidney relations", p:"GFR, clearance, acid-base regulation", pa:"Glomerulonephritis, CKD, RCC", ph:"Diuretics", m:"UTI organisms (E. coli and others)"},
+ {sys:"Gastrointestinal", a:"GIT viscera, portal system, liver segments", p:"GI hormones, digestion/absorption", pa:"Peptic ulcer, hepatitis, cirrhosis, CRC", ph:"Antiulcer drugs, PPIs, antivirals", m:"Enteric bacteria, hepatitis viruses, Entamoeba"},
+ {sys:"Central Nervous System", a:"Cranial nerves, spinal tracts, brainstem, blood supply", p:"Reflexes, sensory/motor pathways, hypothalamus", pa:"Stroke, CNS tumors, demyelination", ph:"Antiepileptics, antipsychotics, anesthetics, opioids", m:"Meningitis-causing organisms"},
+ {sys:"Endocrine", a:"Thyroid relations, pituitary fossa", p:"Thyroid axis, cortisol, insulin physiology", pa:"Thyroid tumors, diabetes pathology", ph:"Insulin, hypoglycemics, corticosteroids", m:"—"},
+ {sys:"Reproductive", a:"Pelvic anatomy, perineum", p:"Menstrual cycle regulation", pa:"Cervical & breast carcinoma", ph:"Hormonal drugs (contextual)", m:"STIs, HPV"},
+ {sys:"Hematology", a:"—", p:"Hemostasis, coagulation, blood groups", pa:"Anemias, leukemias, lymphomas, bleeding disorders", ph:"Hematinics, anticoagulants", m:"—"},
+ {sys:"Musculoskeletal", a:"Joints, nerve injury patterns", p:"Muscle contraction mechanism", pa:"Bone tumors (osteosarcoma, Ewing's)", ph:"NSAIDs, DMARDs", m:"—"},
+ {sys:"Infection & Immunology", a:"—", p:"Immunology-relevant physiology", pa:"Immunopathology, hypersensitivity, lymphoreticular", ph:"Antibiotics, antivirals, antifungals, antiparasitics", m:"Systemic bacteriology, virology, mycology, parasitology, resistance"}
+];
+
+const RESCUE = [
+ {sit:"Bad concentration day", action:"Drop to 2 blocks of 90 minutes with hard 10-min walk breaks. Switch to MCQ-only mode (lower cognitive load than new concepts). Do not skip the day — protect the streak even at 40% output."},
+ {sit:"Backlog day (fell behind)", action:"Do not try to 'catch up' by cramming two days into one. Triage: keep only HY topics from the missed day, push LY topics to the Sunday catch-up slot. Never let backlog cross into a second day uncontained."},
+ {sit:"Low motivation day", action:"Start with the easiest win — 20 MCQs you'll get mostly right. Momentum first, motivation follows. Re-read your 'why' (exam goal) for 60 seconds before block 1."},
+ {sit:"Anatomy taking too long", action:"Cap each Anatomy topic at its scheduled time hard stop. Switch to diagram-only recall for low-yield regional detail; spend saved time on cranial nerves, brachial plexus, heart, and abdomen — these carry disproportionate FMGE weight."},
+ {sit:"Pharmacology retention poor", action:"Stop reading drug lists. Switch to the 'mechanism chain' method: receptor → effect → use → side effect → contraindication, said out loud from memory. Pair every drug with the disease pathology block you already studied that week."},
+ {sit:"Microbiology feels boring", action:"Switch to 'organism story' mode: treat each organism like a patient case — where it lives, how it spreads, what it causes, how it's diagnosed, how it's treated. Use the AI Study Companion's Clinical Case mode to turn dry organism facts into vignettes."}
+];
+
+const FINAL_RULES = [
+ "No zero days. Even a bad day gets at least one MCQ block and the night recall block.",
+ "Phone goes into another room (or airplane mode) during all Deep Concept blocks. No exceptions.",
+ "Every topic completed today gets reviewed at Day 1, Day 7, and Day 30 — no topic is 'done' until all three reviews are cleared.",
+ "MCQs are solved daily — minimum 40 on weekdays, 100 on Saturdays. No day without MCQs.",
+ "Every wrong MCQ goes into the Mistake Notebook within the hour, not 'later'.",
+ "Sunday is non-negotiable: Grand Test + full mistake-log clearance + catch-up for the week's backlog.",
+ "If a block spills over by more than 20 minutes, cut it and move to the next block — protect the day's structure over finishing one topic perfectly.",
+ "High-Yield topics are mastered before any Low-Yield topic is touched, in every subject, every week.",
+ "One clinical-integration link must be written, out loud or on paper, for every system block before moving to the next.",
+ "Week 8 mock scores decide the final 3 days — weakest subject gets the most time, not the favorite one."
+];
+</script>
+<script id="app-script">
+/* ---------- Storage adapter (Claude artifact storage, falls back to localStorage standalone) ---------- */
+const hasClaudeStorage = !!(window.storage && window.storage.get);
+const Store = {
+  async get(key){
+    if(hasClaudeStorage){
+      try{ const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; }catch(e){ return null; }
+    } else {
+      try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+    }
+  },
+  async set(key,val){
+    if(hasClaudeStorage){
+      try{ await window.storage.set(key, JSON.stringify(val)); }catch(e){}
+    } else {
+      try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+    }
+  }
+};
+
+/* ---------- Global state ---------- */
+let STATE = {
+  topicDone: {},        // id -> {done:true, date:ISO}
+  ttDone: {},           // "w{n}-{day}-{blockIdx}" -> true
+  mistakes: [],         // [{id,subject,topic,question,answer,notes,added,reviewStage,nextReview}]
+  reviews: [],          // [{id,subject,topic,dueDate,stage}]
+  xp: 0,
+  streak: 0,
+  lastActive: null,
+  studyLog: {},         // date -> hours
+  quizStats: {correct:0, total:0},
+  examDate: null,
+  flashCache: {},        // "subject||topic" -> [{front,back}]
+};
+let ROUTE = "dashboard";
+let openWeek = 1;
+let openTopicSubject = "anatomy";
+let openTopicIdx = null;
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function addDays(dstr,n){ const d=new Date(dstr+"T00:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+
+async function loadState(){
+  const keys = ["topicDone","ttDone","mistakes","reviews","xp","streak","lastActive","studyLog","quizStats","examDate","startDate"];
+  for(const k of keys){
+    const v = await Store.get(k);
+    if(v !== null && v !== undefined) STATE[k] = v;
+  }
+  touchStreak();
+}
+function touchStreak(){
+  const t = todayStr();
+  if(STATE.lastActive === t) return;
+  if(STATE.lastActive === addDays(t,-1)){ STATE.streak += 1; }
+  else if(STATE.lastActive === null){ STATE.streak = 1; }
+  else { STATE.streak = 1; }
+  STATE.lastActive = t;
+  Store.set("lastActive", STATE.lastActive);
+  Store.set("streak", STATE.streak);
+}
+function addXP(n){ STATE.xp += n; Store.set("xp", STATE.xp); }
+function levelInfo(){
+  const lvl = Math.floor(STATE.xp/100)+1;
+  const into = STATE.xp%100;
+  return {lvl, into, next:100};
+}
+function toast(msg){
+  const el = document.createElement("div");
+  el.className="toast"; el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2200);
+}
+
+/* ---------- Topic helpers ---------- */
+function allLeaves(){
+  const out=[];
+  for(const subj in TOPICS){
+    TOPICS[subj].forEach((t,ti)=>t.subs.forEach((s,si)=>{
+      out.push({id:`${subj}-${ti}-${si}`, subject:subj, topic:t.name, name:s.n, hy:s.hy});
+    }));
+  }
+  return out;
+}
+function leafProgress(subj){
+  const leaves = allLeaves().filter(l=>l.subject===subj);
+  const done = leaves.filter(l=>STATE.topicDone[l.id]?.done).length;
+  return {done, total:leaves.length};
+}
+function overallProgress(){
+  const leaves = allLeaves();
+  const done = leaves.filter(l=>STATE.topicDone[l.id]?.done).length;
+  return {done, total:leaves.length, pct: leaves.length? Math.round(done/leaves.length*100):0};
+}
+function leafMeta(id){
+  const [subj,ti,si] = id.split("-");
+  const t = TOPICS[subj][+ti];
+  return {subject:subj, topic:t.name, name:t.subs[+si].n};
+}
+function toggleLeaf(id){
+  const cur = STATE.topicDone[id];
+  if(cur && cur.done){
+    delete STATE.topicDone[id];
+  } else {
+    STATE.topicDone[id] = {done:true, date:todayStr()};
+    addXP(10);
+    scheduleReviews(id, leafMeta(id));
+    touchStreak();
+  }
+  Store.set("topicDone", STATE.topicDone);
+}
+function scheduleReviews(id, meta){
+  const t = todayStr();
+  [1,7,30].forEach(days=>{
+    STATE.reviews.push({
+      id: id+"-r"+days+"-"+Date.now(),
+      leafId:id, subject:meta.subject, topic:meta.topic, name:meta.name,
+      dueDate: addDays(t,days), stage: days, done:false
+    });
+  });
+  Store.set("reviews", STATE.reviews);
+}
+function dueReviews(){
+  const t = todayStr();
+  return STATE.reviews.filter(r=>!r.done && r.dueDate<=t).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+}
+function upcomingReviews(){
+  const t = todayStr();
+  return STATE.reviews.filter(r=>!r.done && r.dueDate>t).sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,8);
+}
+function markReviewDone(id){
+  const r = STATE.reviews.find(x=>x.id===id);
+  if(r){ r.done=true; addXP(3); touchStreak(); Store.set("reviews",STATE.reviews); render(); }
+}
+
+/* ---------- Timetable helpers ---------- */
+function ttKey(w,day,idx){ return `w${w}-${day}-${idx}`; }
+function toggleTT(w,day,idx){
+  const k = ttKey(w,day,idx);
+  if(STATE.ttDone[k]){ delete STATE.ttDone[k]; }
+  else { STATE.ttDone[k]=true; addXP(5); touchStreak(); }
+  Store.set("ttDone", STATE.ttDone);
+  render();
+}
+function weekProgress(w){
+  const week = WEEKS.find(x=>x.n===w);
+  let total=0, done=0;
+  Object.keys(week.days).forEach(day=>{
+    week.days[day].forEach((_,idx)=>{ total++; if(STATE.ttDone[ttKey(w,day,idx)]) done++; });
+  });
+  return {done,total};
+}
+
+/* ---------- Mistake notebook ---------- */
+function addMistake(m){
+  const t = todayStr();
+  const entry = {id:"m"+Date.now(), subject:m.subject, topic:m.topic, question:m.question, answer:m.answer, notes:m.notes||"", added:t, reviewStage:0, nextReview:addDays(t,1), cleared:false};
+  STATE.mistakes.unshift(entry);
+  Store.set("mistakes", STATE.mistakes);
+  touchStreak();
+}
+function clearMistake(id){
+  STATE.mistakes = STATE.mistakes.filter(m=>m.id!==id);
+  Store.set("mistakes", STATE.mistakes);
+  addXP(2);
+  render();
+}
+function snoozeMistake(id){
+  const m = STATE.mistakes.find(x=>x.id===id);
+  if(m){ m.reviewStage++; m.nextReview = addDays(todayStr(), m.reviewStage>=2?7:1); Store.set("mistakes",STATE.mistakes); render(); }
+}
+
+/* ---------- AI Companion ---------- */
+async function callClaude(prompt){
+  const res = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      model:"claude-sonnet-4-6",
+      max_tokens:1000,
+      messages:[{role:"user", content:prompt}]
+    })
+  });
+  if(!res.ok) throw new Error("API error "+res.status);
+  const data = await res.json();
+  return (data.content||[]).map(c=>c.text||"").join("\n").trim();
+}
+function stripFence(s){ return s.replace(/```json|```/g,"").trim(); }
+
+/* ---------- Router ---------- */
+function nav(route){ ROUTE = route; render(); window.scrollTo(0,0); }
+
+const NAVS = [
+  {group:"Command", items:[
+    {id:"dashboard", label:"Dashboard", ico:"◈"},
+    {id:"strategy", label:"Strategy Blueprint", ico:"≡"},
+  ]},
+  {group:"Execute", items:[
+    {id:"timetable", label:"8-Week Timetable", ico:"▦"},
+    {id:"topics", label:"Topic Bank", ico:"▤"},
+    {id:"lab", label:"AI Study Lab", ico:"✦"},
+  ]},
+  {group:"Memory", items:[
+    {id:"mistakes", label:"Mistake Notebook", ico:"✕"},
+    {id:"revision", label:"Revision Scheduler", ico:"↻"},
+    {id:"analytics", label:"Analytics", ico:"▣"},
+  ]},
+  {group:"", items:[
+    {id:"settings", label:"Settings", ico:"⚙"},
+  ]}
+];
+
+function renderSidebar(){
+  let html = `<div class="brand"><div class="brand-mark">V</div><div><div class="brand-text">VITALS</div><div class="brand-sub">FMGE Command Center</div></div></div>`;
+  NAVS.forEach(g=>{
+    if(g.group) html += `<div class="navlabel">${g.group}</div>`;
+    g.items.forEach(it=>{
+      html += `<button class="navitem ${ROUTE===it.id?'active':''}" onclick="nav('${it.id}')"><span class="ico">${it.ico}</span>${it.label}</button>`;
+    });
+  });
+  html += `<div class="sidebar-foot">Day ${daysSinceStart()} of 56 · Keep the streak alive.<br><br>Built for one goal: pass FMGE with real mastery.</div>`;
+  return html;
+}
+function daysSinceStart(){
+  if(!STATE.startDate) return 1;
+  const diff = Math.ceil((new Date(todayStr()) - new Date(STATE.startDate)) / 86400000) + 1;
+  return Math.min(56, Math.max(1, diff));
+}
+
+function renderVitals(){
+  const {lvl,into} = levelInfo();
+  const prog = overallProgress();
+  return `
+  <div class="vitals">
+    <div class="vital"><div class="vital-label">Streak</div><div class="vital-value amber">${STATE.streak} 🔥</div></div>
+    <div class="vital-divider"></div>
+    <div class="vital"><div class="vital-label">Level</div><div class="vital-value teal">${lvl}</div></div>
+    <div class="vital-divider"></div>
+    <div class="vital"><div class="vital-label">XP</div><div class="vital-value">${STATE.xp}</div></div>
+    <div class="vital-divider"></div>
+    <div class="vital"><div class="vital-label">Readiness</div><div class="vital-value teal">${prog.pct}%</div></div>
+    <div class="scanline-wrap">${scanSVG()}</div>
+    <div class="vital-divider"></div>
+    <div class="vital"><div class="vital-label">Exam in</div><div class="vital-value">${examCountdown()}</div></div>
+  </div>`;
+}
+let scanPhase = 0;
+function scanSVG(){
+  return `<svg viewBox="0 0 300 24" preserveAspectRatio="none">
+    <path class="scan-path" d="M0,12 L40,12 L52,3 L64,21 L76,12 L300,12"/>
+    <circle class="scan-dot" cx="${(scanPhase%300)}" cy="12" r="3"></circle>
+  </svg>`;
+}
+function examCountdown(){
+  if(!STATE.examDate) return "—";
+  const diff = Math.ceil((new Date(STATE.examDate) - new Date())/86400000);
+  return diff>=0 ? diff+"d" : "passed";
+}
+
+/* ---------- Today Card ---------- */
+function renderTodayCard(){
+  const dayNum = daysSinceStart();
+  const weekNum = Math.min(8, Math.ceil(dayNum/7));
+  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat"];
+  const dayInWeek = ((dayNum-1)%7); // 0=Mon … 5=Sat … 6=Sun
+  const week = WEEKS.find(w=>w.n===weekNum);
+  const dayName = dayInWeek<6? dayNames[dayInWeek] : null;
+  const isSunday = dayInWeek===6;
+  let content = "";
+  if(isSunday){
+    content = `<div style="font-size:13px;line-height:1.6;"><b style="color:var(--amber)">☀ Sunday — Review Day</b><br>${week?week.sunday:""}</div>`;
+  } else if(week && dayName && week.days[dayName]){
+    const blocks = week.days[dayName];
+    const labels = ["7:00 — Block 1","9:15 — Block 2","13:30 — Block 3","17:00 — Clinical Integ"];
+    content = blocks.map((b,i)=>{
+      const k = ttKey(weekNum, dayName, i);
+      const done = !!STATE.ttDone[k];
+      return `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span class="chk ${done?'done':''}" onclick="toggleTT(${weekNum},'${dayName}',${i})" style="margin-top:1px;"></span>
+        <div><div class="font-mono" style="font-size:10px;color:var(--muted);">${labels[i]}</div>
+        <div style="font-size:12.5px;${done?'text-decoration:line-through;color:var(--muted);':''}">${b}</div></div>
+      </div>`;
+    }).join("");
+  } else {
+    content = `<div class="empty" style="padding:10px 0;">Set your start date in Settings to activate this card.</div>`;
+  }
+  return `<div class="card" style="margin-top:14px;border-color:var(--teal);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="h2">Today — Day ${dayNum} of 56 · Week ${weekNum}</div>
+      <button class="btn sm" onclick="nav('timetable')">Full week →</button>
+    </div>
+    ${content}
+  </div>`;
+}
+
+/* ---------- Page: Dashboard ---------- */
+function pageDashboard(){
+  const prog = overallProgress();
+  const due = dueReviews();
+  const acc = STATE.quizStats.total? Math.round(STATE.quizStats.correct/STATE.quizStats.total*100):0;
+  const subjRows = Object.keys(SUBJECTS).map(s=>{
+    const p = leafProgress(s);
+    const pct = p.total? Math.round(p.done/p.total*100):0;
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;">
+        <span>${SUBJECTS[s].icon} ${SUBJECTS[s].label}</span><span class="font-mono" style="color:var(--muted)">${p.done}/${p.total}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="page">
+    <h1 class="h1">Mission Control</h1>
+    <p class="sub">Welcome back. ${due.length? `<b style="color:var(--amber)">${due.length} review${due.length>1?'s':''} due today.</b>` : 'No reviews due today — clean slate.'}</p>
+
+    <div class="grid grid-4" style="margin-bottom:18px;">
+      <div class="card statcard"><div class="lbl">Overall Readiness</div><div class="val teal">${prog.pct}%</div><div class="delta">${prog.done}/${prog.total} subtopics mastered</div></div>
+      <div class="card statcard"><div class="lbl">Streak</div><div class="val amber">${STATE.streak} days</div><div class="delta">Don't break the chain</div></div>
+      <div class="card statcard"><div class="lbl">Quiz Accuracy</div><div class="val">${acc}%</div><div class="delta">${STATE.quizStats.correct}/${STATE.quizStats.total} correct (AI Lab)</div></div>
+      <div class="card statcard"><div class="lbl">Mistake Notebook</div><div class="val" style="color:var(--red)">${STATE.mistakes.length}</div><div class="delta">open entries to clear</div></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="h2">Subject Mastery</div>
+        <p class="sub" style="margin-bottom:14px;">High-yield + low-yield subtopics combined</p>
+        ${subjRows}
+      </div>
+      <div class="card">
+        <div class="h2">Reviews Due Today</div>
+        <p class="sub" style="margin-bottom:10px;">Spaced repetition: Day 1 → Day 7 → Day 30</p>
+        ${due.length? due.slice(0,6).map(r=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);">
+            <div style="font-size:12.5px;"><span class="tag">${SUBJECTS[r.subject]?.icon||''} ${r.subject}</span>${r.name}</div>
+            <button class="btn sm primary" onclick="markReviewDone('${r.id}')">Done</button>
+          </div>`).join("") : `<div class="empty">All caught up. Go bank some new XP in Topic Bank →</div>`}
+        ${due.length>6?`<div class="sub" style="margin-top:8px;">+${due.length-6} more — see Revision Scheduler</div>`:""}
+      </div>
+    </div>
+
+    ${renderTodayCard()}
+    <div class="card" style="margin-top:14px;">
+      <div class="h2">Quick Actions</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn primary" onclick="nav('timetable')">Open today's timetable</button>
+        <button class="btn" onclick="nav('lab')">AI: Teach me a topic</button>
+        <button class="btn" onclick="nav('mistakes')">Mistake notebook</button>
+        <button class="btn" onclick="nav('topics')">Mark topics done</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Page: Strategy ---------- */
+function pageStrategy(){
+  return `
+  <div class="page">
+    <h1 class="h1">Strategy Blueprint</h1>
+    <p class="sub">The reasoning behind the sequencing, the daily structure, and the rules that hold the whole 8 weeks together.</p>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="h2">A · Why this subject order</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--text);margin-top:10px;">
+      Anatomy and Physiology open the plan because every later subject leans on them — you can't reason about pathology without knowing normal structure and function first. General Pathology follows once basic physiology concepts (cell, blood, CVS, resp) are in place, because disease is best understood as a deviation from a mechanism you already hold in memory. Pharmacology is then taught system-by-system, glued to the pathology of that same system, because drugs only make sense against the disease they treat. Microbiology runs in two modes: woven into each system block wherever an organism-disease link exists (TB in the respiratory block, hepatitis viruses in the GIT block), and concentrated in Week 7 for the systemic bacteriology/virology/parasitology that doesn't map to one organ.
+      </p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="h2">A · Why 8 weeks, structured this way</div>
+      <p style="font-size:13px;line-height:1.7;margin-top:10px;">
+      Weeks 1–2 build the foundation (regional anatomy + general physiology + general pathology) without which system blocks would collapse. Weeks 3–6 are pure system blocks — CVS, Respiratory+Renal, GIT+Endocrine+Hematology, CNS+MSK+Reproductive — each one a closed loop touching all 5 subjects. Week 7 sweeps up systemic microbiology, antimicrobial pharmacology, and immunology, plus any topic that slipped through. Week 8 is zero new content: five full mock tests, error analysis after each, and total mistake-notebook clearance.
+      </p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="h2">A · How clinical integration is enforced</div>
+      <p style="font-size:13px;line-height:1.7;margin-top:10px;">
+      Every single day has a dedicated Clinical Integration / PYQ block, and every day's plan names one explicit cross-subject chain (e.g. "Coronary anatomy → IHD pathology → angina pharmacology"). The Topic Bank tags every subtopic High-Yield or Low-Yield so HY clinical material is never skipped. The System Integration Map below makes the connections explicit for all 11 systems.
+      </p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="h2">B · Fixed Daily Template (10+ focused hours)</div>
+      <table class="imap" style="margin-top:10px;">
+        <tr><th>Time</th><th>Block</th><th>Purpose</th></tr>
+        ${FIXED_BLOCKS.map(b=>`<tr><td class="font-mono" style="white-space:nowrap;">${b.time}</td><td><b>${b.label}</b></td><td>${blockPurpose(b.label)}</td></tr>`).join("")}
+      </table>
+      <p class="sub" style="margin-top:10px;">Breaks: 15 min after every block, 1 hour for lunch (12:30–13:30), 1 hour for dinner (18:30–19:30). Total ≈10.5 study hours inside a 14.5-hour day, leaving room to breathe.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="h2">D · System-Wise Integration Map</div>
+      <div style="overflow-x:auto;margin-top:10px;">
+      <table class="imap">
+        <tr><th>System</th><th>Anatomy</th><th>Physiology</th><th>Pathology</th><th>Pharmacology</th><th>Microbiology</th></tr>
+        ${INTEGRATION_MAP.map(r=>`<tr><td class="sys">${r.sys}</td><td>${r.a}</td><td>${r.p}</td><td>${r.pa}</td><td>${r.ph}</td><td>${r.m}</td></tr>`).join("")}
+      </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="h2">E · Weekly Exam & Revision System</div>
+      <ul style="font-size:13px;line-height:1.8;margin-top:10px;padding-left:18px;">
+        <li><b>24-hour rule:</b> every topic gets a same-day revision pass in the "Same-Day Revision" block.</li>
+        <li><b>7-day rule:</b> Day-7 spaced review auto-scheduled the moment you mark a topic complete in Topic Bank.</li>
+        <li><b>End-of-week rule:</b> Saturday is MCQ marathon + mistake review; Sunday is a Grand Test covering the whole week plus full mistake-log clearance.</li>
+        <li><b>30-day rule:</b> Day-30 review locks in long-term retention — visible in the Revision Scheduler.</li>
+        <li><b>Daily MCQs:</b> minimum 40 on weekdays, 100 on Saturdays.</li>
+        <li><b>Wrong-question protocol:</b> log to Mistake Notebook within the hour → re-attempt at Day 1 → re-attempt at Day 7 → clear only when correct twice in a row.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="h2">F · Rescue Protocols</div>
+      ${RESCUE.map(r=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);"><b style="color:var(--amber);font-size:13px;">${r.sit}</b><div style="font-size:12.8px;color:var(--text);margin-top:4px;line-height:1.6;">${r.action}</div></div>`).join("")}
+    </div>
+
+    <div class="card">
+      <div class="h2">G · Final Rules — Non-Negotiable for 8 Weeks</div>
+      <ol style="font-size:13px;line-height:1.9;margin-top:10px;padding-left:20px;">
+        ${FINAL_RULES.map(r=>`<li>${r}</li>`).join("")}
+      </ol>
+    </div>
+  </div>`;
+}
+function blockPurpose(label){
+  const map = {
+    "Startup Routine":"Phone away, re-read today's targets, 5-min light movement — momentum before content.",
+    "Deep Concept Block 1":"Hardest new concept of the day, fresh brain — anatomy/physiology lead here.",
+    "Deep Concept Block 2":"Second deep concept — different subject from Block 1 to keep engagement high.",
+    "Same-Day Revision":"Blank-sheet recall of yesterday's Block 1+2 before adding anything new today.",
+    "Deep Concept Block 3":"Pathology, pharmacology, or microbiology — system-linked to the morning's anatomy/physiology.",
+    "MCQ Block":"Timed MCQs across today's subjects — applied recall, not just reading.",
+    "Clinical Integration / PYQ":"One explicit cross-subject chain + previous-year questions on today's system.",
+    "Active Recall (Night)":"Closed-book recall of the entire day, written or spoken from memory.",
+    "Mistake Log + Plan Tomorrow":"Log every wrong MCQ, tag weak topics, set tomorrow's 3 priorities."
+  };
+  return map[label]||"";
+}
+
+/* ---------- Page: Timetable ---------- */
+function pageTimetable(){
+  return `
+  <div class="page">
+    <h1 class="h1">8-Week Master Timetable</h1>
+    <p class="sub">Anatomy + Physiology foundation → system-wise CVS / Resp+Renal / GIT+Endo+Heme / CNS+MSK+Repro blocks → Microbiology & Immunology sweep → Grand revision week.</p>
+    <div class="pillbar">
+      ${WEEKS.map(w=>`<button class="pill ${openWeek===w.n?'active':''}" onclick="openWeek=${w.n};render()">Week ${w.n}</button>`).join("")}
+    </div>
+    ${renderWeek(WEEKS.find(w=>w.n===openWeek))}
+  </div>`;
+}
+function renderWeek(week){
+  const wp = weekProgress(week.n);
+  const days = ["Mon","Tue","Wed","Thu","Fri","Sat"];
+  return `
+  <div class="card">
+    <div class="week-head">
+      <div class="meta">
+        <span class="weeknum">WEEK ${week.n}</span>
+        <div>
+          <div class="h2">${week.title}</div>
+          <div class="sub" style="margin:2px 0 0;">${week.focus}</div>
+        </div>
+      </div>
+      <div style="text-align:right;min-width:90px;">
+        <div class="font-mono" style="font-size:13px;color:var(--teal);">${wp.done}/${wp.total}</div>
+        <div class="progress-track" style="width:90px;margin-top:4px;"><div class="progress-fill" style="width:${wp.total?wp.done/wp.total*100:0}%"></div></div>
+      </div>
+    </div>
+    ${days.map(day=>renderDay(week,day)).join("")}
+    <div class="day-block">
+      <div class="day-title">☀ Sunday — Review & Catch-Up</div>
+      <div class="slot-text" style="padding:6px 4px;">${week.sunday}</div>
+    </div>
+  </div>`;
+}
+function renderDay(week, day){
+  const items = week.days[day];
+  const labels = ["Deep Concept Block 1 (Morning)","Deep Concept Block 2 (Midday)","Deep Concept Block 3 (Afternoon)","Clinical Integration (Evening)"];
+  const times = ["7:00–9:00","9:15–11:15","13:30–15:00","17:00–18:30"];
+  return `
+  <div class="day-block">
+    <div class="day-title">${day}</div>
+    ${items.map((txt,idx)=>{
+      const k = ttKey(week.n,day,idx);
+      const isDone = !!STATE.ttDone[k];
+      return `<div class="slot-row">
+        <span class="chk ${isDone?'done':''}" onclick="toggleTT(${week.n},'${day}',${idx})"></span>
+        <div style="flex:1;">
+          <div class="slot-time">${times[idx]} · ${labels[idx]}</div>
+          <div class="slot-text ${isDone?'done':''}">${txt}</div>
+        </div>
+      </div>`;
+    }).join("")}
+    <div class="slot-row" style="opacity:.6;"><span class="slot-time">15:15–16:45 · 19:30–20:30</span><div class="slot-text">+ MCQ Block (40 MCQs) and Night Active Recall — standard every weekday, see Strategy Blueprint for format.</div></div>
+  </div>`;
+}
+
+/* ---------- Page: Topics ---------- */
+function pageTopics(){
+  const subjPills = Object.keys(SUBJECTS).map(s=>`<button class="pill ${openTopicSubject===s?'active':''}" onclick="openTopicSubject='${s}';openTopicIdx=null;render()">${SUBJECTS[s].icon} ${SUBJECTS[s].label}</button>`).join("");
+  const list = TOPICS[openTopicSubject];
+  const prog = leafProgress(openTopicSubject);
+  return `
+  <div class="page">
+    <h1 class="h1">Topic Bank</h1>
+    <p class="sub">Every topic and subtopic, tagged High-Yield (amber) vs Low-Yield. Check off what you've mastered — it auto-schedules Day 1 / 7 / 30 reviews.</p>
+    <div class="pillbar">${subjPills}</div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="h2">${SUBJECTS[openTopicSubject].icon} ${SUBJECTS[openTopicSubject].label}</div>
+        <div class="font-mono" style="font-size:13px;color:var(--teal);">${prog.done}/${prog.total} mastered</div>
+      </div>
+      <div class="progress-track" style="margin-bottom:18px;"><div class="progress-fill" style="width:${prog.total?prog.done/prog.total*100:0}%"></div></div>
+      ${list.map((t,ti)=>renderTopicRow(t,ti)).join("")}
+    </div>
+  </div>`;
+}
+function renderTopicRow(t, ti){
+  const subj = openTopicSubject;
+  const isOpen = openTopicIdx===ti;
+  const total = t.subs.length;
+  const done = t.subs.filter((s,si)=>STATE.topicDone[`${subj}-${ti}-${si}`]?.done).length;
+  return `
+  <div class="topic-row">
+    <div class="topic-head" onclick="openTopicIdx = openTopicIdx===${ti}?null:${ti}; render()">
+      <div class="left"><span class="chev ${isOpen?'open':''}">▸</span><b style="font-size:13.5px;">${t.name}</b></div>
+      <span class="font-mono" style="font-size:12px;color:var(--muted)">${done}/${total}</span>
+    </div>
+    ${isOpen? t.subs.map((s,si)=>{
+      const id = `${subj}-${ti}-${si}`;
+      const isDone = !!STATE.topicDone[id]?.done;
+      return `<div class="sub-row">
+        <span class="chk ${isDone?'done':''}" onclick="toggleLeaf('${id}');render()"></span>
+        <span style="flex:1;font-size:12.8px;${isDone?'color:var(--muted);text-decoration:line-through;':''}">${s.n}</span>
+        <span class="badge ${s.hy?'hy':'ly'}">${s.hy?'HIGH-YIELD':'low-yield'}</span>
+      </div>`;
+    }).join("") : ""}
+  </div>`;
+}
+
+/* ---------- Page: AI Study Lab ---------- */
+let labMode = "teach";
+let labSubject = "anatomy";
+let labTopic = "";
+let labOutput = null;
+let labLoading = false;
+let labError = null;
+
+function pageLab(){
+  const topicOptions = TOPICS[labSubject].flatMap(t=>t.subs.map(s=>s.n));
+  return `
+  <div class="page">
+    <h1 class="h1">AI Study Lab</h1>
+    <p class="sub">Live Claude-powered tutor. Pick a mode, choose a topic, and generate exam-ready material on demand.</p>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="grid grid-3">
+        <div>
+          <label class="field-label">Mode</label>
+          <select onchange="labMode=this.value;render()">
+            ${["teach:Teach Me","explain:Explain Simply","quiz:Quiz Me (5 MCQs)","case:Clinical Case","flash:Flashcards (8)"].map(o=>{
+              const [v,l]=o.split(":"); return `<option value="${v}" ${labMode===v?'selected':''}>${l}</option>`;
+            }).join("")}
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Subject</label>
+          <select onchange="labSubject=this.value;labTopic='';render()">
+            ${Object.keys(SUBJECTS).map(s=>`<option value="${s}" ${labSubject===s?'selected':''}>${SUBJECTS[s].icon} ${SUBJECTS[s].label}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Topic</label>
+          <select onchange="labTopic=this.value">
+            <option value="">— choose a topic —</option>
+            ${topicOptions.map(o=>`<option value="${o.replace(/"/g,'&quot;')}" ${labTopic===o?'selected':''}>${o}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <button class="btn primary" style="margin-top:14px;" ${labLoading?'disabled':''} onclick="runLab()">${labLoading?'<span class="spin"></span> Generating…':'Generate'}</button>
+    </div>
+    <div id="lab-output">${renderLabOutput()}</div>
+  </div>`;
+}
+function renderLabOutput(){
+  if(labLoading) return `<div class="empty"><span class="spin"></span> Asking Claude…</div>`;
+  if(labError) return `<div class="card" style="border-color:var(--red);color:var(--red);font-size:13px;">${labError}</div>`;
+  if(!labOutput) return `<div class="empty">Choose a topic and mode above, then hit Generate.</div>`;
+
+  if(labOutput.type==="text"){
+    return `<div class="card" style="white-space:pre-wrap;font-size:13.5px;line-height:1.7;">${escapeHtml(labOutput.text)}</div>`;
+  }
+  if(labOutput.type==="quiz"){
+    return labOutput.data.map((q,qi)=>renderQuizCard(q,qi)).join("");
+  }
+  if(labOutput.type==="case"){
+    const d = labOutput.data;
+    return `<div class="card">
+      <div class="tag">Clinical Vignette</div>
+      <p style="font-size:13.5px;line-height:1.7;margin-top:10px;">${escapeHtml(d.vignette)}</p>
+      ${Object.entries(d.options).map(([k,v])=>`<div class="sub-row" style="padding-left:0;"><b style="width:20px;">${k}.</b> ${escapeHtml(v)}</div>`).join("")}
+      <details style="margin-top:10px;"><summary style="cursor:pointer;color:var(--teal);font-size:12.8px;">Reveal answer</summary>
+        <p style="font-size:13px;margin-top:8px;"><b style="color:var(--teal)">Answer: ${d.answer}</b> — ${escapeHtml(d.explanation)}</p>
+      </details>
+    </div>`;
+  }
+  if(labOutput.type==="flash"){
+    return `<div class="grid grid-2">${labOutput.data.map((c,ci)=>renderFlashCard(c,ci)).join("")}</div>`;
+  }
+  return "";
+}
+function renderQuizCard(q, qi){
+  return `<div class="card" style="margin-bottom:12px;" id="quiz-${qi}">
+    <div style="font-size:13.5px;font-weight:600;margin-bottom:10px;">${qi+1}. ${escapeHtml(q.question)}</div>
+    ${Object.entries(q.options).map(([k,v])=>`<button class="btn sm" style="display:block;width:100%;text-align:left;margin-bottom:6px;" onclick="answerQuiz(${qi},'${k}')">${k}. ${escapeHtml(v)}</button>`).join("")}
+    <div id="quiz-feedback-${qi}"></div>
+  </div>`;
+}
+function answerQuiz(qi, chosen){
+  const q = labOutput.data[qi];
+  const correct = chosen===q.answer;
+  STATE.quizStats.total++; if(correct) STATE.quizStats.correct++;
+  Store.set("quizStats", STATE.quizStats);
+  addXP(correct?3:1);
+  const fb = document.getElementById("quiz-feedback-"+qi);
+  fb.innerHTML = `<div style="margin-top:8px;padding:10px;border-radius:8px;background:${correct?'var(--teal-dim)':'var(--red-dim)'};font-size:12.8px;">
+    <b style="color:${correct?'var(--teal)':'var(--red)'}">${correct?'Correct':'Incorrect — answer: '+q.answer}</b><br>${escapeHtml(q.explanation)}
+    ${!correct?`<br><button class="btn sm" style="margin-top:8px;" onclick="quickAddMistakeFromIndex(${qi})">Add to Mistake Notebook</button>`:""}
+  </div>`;
+  refreshVitals();
+}
+function quickAddMistakeFromIndex(qi){
+  const q = labOutput.data[qi];
+  addMistake({subject:labSubject, topic:labTopic||"—", question:q.question, answer:q.answer, notes:""});
+  toast("Added to Mistake Notebook");
+}
+function escapeAttr(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function renderFlashCard(c, ci){
+  return `<div class="flash" data-front="${escapeAttr(c.front)}" data-back="${escapeAttr(c.back)}" data-shown="0" onclick="flipCard(this)">
+    <div><div class="tag">Front</div><br>${escapeHtml(c.front)}</div>
+  </div>`;
+}
+function flipCard(el){
+  const showingBack = el.dataset.shown === "1";
+  el.dataset.shown = showingBack ? "0" : "1";
+  const label = showingBack ? "Front" : "Answer";
+  const text = showingBack ? el.dataset.front : el.dataset.back;
+  el.innerHTML = `<div><div class="tag">${label}</div><br>${text}</div>`;
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+async function runLab(){
+  if(!labTopic){ toast("Pick a topic first"); return; }
+  labLoading=true; labError=null; labOutput=null; render();
+  try{
+    let prompt, parseType="text";
+    const ctx = `${labTopic} (${SUBJECTS[labSubject].label}) for FMGE (NEET PG-level Indian medical licensing exam) prep`;
+    if(labMode==="teach") prompt = `Teach ${ctx} in a clear, structured way using short headings and bullet points. Include one high-yield clinical correlation. Keep it focused, under 400 words. Plain text only, no JSON.`;
+    if(labMode==="explain") prompt = `Explain ${ctx} as simply as possible, like a first-time learner, using one short analogy. Under 250 words. Plain text only, no JSON.`;
+    if(labMode==="quiz"){ prompt = `Generate exactly 5 FMGE-style MCQs on ${ctx}, each with 4 options. Return ONLY valid JSON, no markdown fences, no preamble: [{"question":"...","options":{"A":"...","B":"...","C":"...","D":"..."},"answer":"A","explanation":"..."}]`; parseType="quiz"; }
+    if(labMode==="case"){ prompt = `Write one realistic FMGE-style clinical vignette testing ${ctx}, with 4 options labeled A-D, the correct answer, and a short explanation. Return ONLY valid JSON, no markdown fences: {"vignette":"...","options":{"A":"...","B":"...","C":"...","D":"..."},"answer":"A","explanation":"..."}`; parseType="case"; }
+    if(labMode==="flash"){ prompt = `Generate exactly 8 high-yield flashcards on ${ctx}. Return ONLY valid JSON, no markdown fences: [{"front":"...","back":"..."}]`; parseType="flash"; }
+
+    const raw = await callClaude(prompt);
+    if(parseType==="text"){ labOutput = {type:"text", text:raw}; }
+    else { const parsed = JSON.parse(stripFence(raw)); labOutput = {type:parseType, data:parsed}; }
+    addXP(5); touchStreak();
+  }catch(e){
+    labError = "Something went wrong reaching the AI Study Lab. Try again, or pick a different topic. (" + e.message + ")";
+  }
+  labLoading=false; render();
+}
+
+/* ---------- Page: Mistake Notebook ---------- */
+let mistakeForm = {subject:"anatomy", topic:"", question:"", answer:"", notes:""};
+function pageMistakes(){
+  const due = STATE.mistakes.filter(m=>m.nextReview<=todayStr());
+  const future = STATE.mistakes.filter(m=>m.nextReview>todayStr());
+  return `
+  <div class="page">
+    <h1 class="h1">Mistake Notebook</h1>
+    <p class="sub">Every wrong MCQ goes here. Clear an entry only once you've gotten it right on a later review.</p>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="h2">Log a new mistake</div>
+      <div class="grid grid-2" style="margin-top:10px;">
+        <div><label class="field-label">Subject</label>
+          <select onchange="mistakeForm.subject=this.value">${Object.keys(SUBJECTS).map(s=>`<option value="${s}" ${mistakeForm.subject===s?'selected':''}>${SUBJECTS[s].label}</option>`).join("")}</select>
+        </div>
+        <div><label class="field-label">Topic</label><input type="text" placeholder="e.g. Atherosclerosis" oninput="mistakeForm.topic=this.value" value="${mistakeForm.topic}"></div>
+      </div>
+      <div style="margin-top:10px;"><label class="field-label">Question</label><textarea rows="2" oninput="mistakeForm.question=this.value">${mistakeForm.question}</textarea></div>
+      <div class="grid grid-2" style="margin-top:10px;">
+        <div><label class="field-label">Correct answer</label><input type="text" oninput="mistakeForm.answer=this.value" value="${mistakeForm.answer}"></div>
+        <div><label class="field-label">Why I got it wrong</label><input type="text" oninput="mistakeForm.notes=this.value" value="${mistakeForm.notes}"></div>
+      </div>
+      <button class="btn primary" style="margin-top:12px;" onclick="submitMistake()">Add to notebook</button>
+    </div>
+
+    <div class="h2" style="margin-bottom:8px;">Due for review (${due.length})</div>
+    ${due.length? due.map(renderMistakeCard).join("") : `<div class="empty" style="margin-bottom:18px;">Nothing due — good work.</div>`}
+
+    ${future.length? `<div class="h2" style="margin:18px 0 8px;">Scheduled later (${future.length})</div>${future.map(renderMistakeCard).join("")}` : ""}
+    ${!STATE.mistakes.length? `<div class="empty">Your notebook is empty. Wrong MCQs from the AI Study Lab can be added with one click.</div>`:""}
+  </div>`;
+}
+function renderMistakeCard(m){
+  return `<div class="card" style="margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <span class="tag">${SUBJECTS[m.subject]?.icon||''} ${m.subject}</span><span class="tag">${escapeHtml(m.topic)}</span>
+        <p style="font-size:13px;margin:8px 0 4px;">${escapeHtml(m.question)}</p>
+        <p style="font-size:12.5px;color:var(--teal);margin:0;">Answer: ${escapeHtml(m.answer)}</p>
+        ${m.notes?`<p style="font-size:12px;color:var(--muted);margin:4px 0 0;">Note: ${escapeHtml(m.notes)}</p>`:""}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn sm" onclick="snoozeMistake('${m.id}')">Still wrong</button>
+        <button class="btn sm primary" onclick="clearMistake('${m.id}')">Got it right</button>
+      </div>
+    </div>
+  </div>`;
+}
+function submitMistake(){
+  if(!mistakeForm.question){ toast("Add a question first"); return; }
+  addMistake(mistakeForm);
+  mistakeForm = {subject:mistakeForm.subject, topic:"", question:"", answer:"", notes:""};
+  toast("Logged to Mistake Notebook");
+  render();
+}
+
+/* ---------- Page: Revision Scheduler ---------- */
+function pageRevision(){
+  const due = dueReviews();
+  const upcoming = upcomingReviews();
+  return `
+  <div class="page">
+    <h1 class="h1">Revision Scheduler</h1>
+    <p class="sub">Spaced repetition engine — every topic you mark complete is auto-queued for Day 1, Day 7, and Day 30 review.</p>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="h2">Due now (${due.length})</div>
+      ${due.length? due.map(r=>`
+        <div class="slot-row">
+          <div style="flex:1;font-size:13px;"><span class="tag">${SUBJECTS[r.subject]?.icon||''} ${r.subject}</span><span class="tag">Day ${r.stage}</span>${r.name}</div>
+          <button class="btn sm primary" onclick="markReviewDone('${r.id}')">Mark reviewed</button>
+        </div>`).join("") : `<div class="empty">Nothing due. Go complete a topic in the Topic Bank.</div>`}
+    </div>
+
+    <div class="card">
+      <div class="h2">Coming up</div>
+      ${upcoming.length? upcoming.map(r=>`
+        <div class="slot-row"><div style="flex:1;font-size:13px;"><span class="tag">${SUBJECTS[r.subject]?.icon||''} ${r.subject}</span><span class="tag">Day ${r.stage}</span>${r.name}</div><div class="font-mono" style="font-size:12px;color:var(--muted);">${r.dueDate}</div></div>`).join("")
+        : `<div class="empty">No upcoming reviews yet.</div>`}
+    </div>
+  </div>`;
+}
+
+/* ---------- Page: Analytics ---------- */
+function pageAnalytics(){
+  const prog = overallProgress();
+  const acc = STATE.quizStats.total? Math.round(STATE.quizStats.correct/STATE.quizStats.total*100):0;
+  const subjBars = Object.keys(SUBJECTS).map(s=>{
+    const p = leafProgress(s); const pct = p.total? Math.round(p.done/p.total*100):0;
+    return `<div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;"><span>${SUBJECTS[s].icon} ${SUBJECTS[s].label}</span><span class="font-mono">${pct}%</span></div>
+      <div class="progress-track"><div class="progress-fill amber" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+  const weekBars = WEEKS.map(w=>{
+    const wp = weekProgress(w.n); const pct = wp.total? Math.round(wp.done/wp.total*100):0;
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;"><span>Week ${w.n}</span><span class="font-mono">${wp.done}/${wp.total}</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+  return `
+  <div class="page">
+    <h1 class="h1">Analytics</h1>
+    <p class="sub">A honest read on where you actually stand — not how many videos you've watched.</p>
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="card statcard"><div class="lbl">Topic Mastery</div><div class="val teal">${prog.pct}%</div></div>
+      <div class="card statcard"><div class="lbl">Quiz Accuracy</div><div class="val">${acc}%</div></div>
+      <div class="card statcard"><div class="lbl">Open Mistakes</div><div class="val" style="color:var(--red)">${STATE.mistakes.length}</div></div>
+      <div class="card statcard"><div class="lbl">Current Streak</div><div class="val amber">${STATE.streak}d</div></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="card"><div class="h2" style="margin-bottom:12px;">Subject Mastery</div>${subjBars}</div>
+      <div class="card"><div class="h2" style="margin-bottom:12px;">Timetable Completion by Week</div>${weekBars}</div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Page: Settings ---------- */
+function pageSettings(){
+  return `
+  <div class="page">
+    <h1 class="h1">Settings</h1>
+    <div class="card" style="margin-bottom:14px;max-width:420px;">
+      <label class="field-label">FMGE exam date</label>
+      <input type="date" value="${STATE.examDate||''}" onchange="STATE.examDate=this.value;Store.set('examDate',STATE.examDate);render()">
+      <p class="sub" style="margin-top:8px;">Powers the exam countdown in the top vitals strip.</p>
+    </div>
+    <div class="card" style="margin-bottom:14px;max-width:420px;">
+      <div class="h2">Start date override</div>
+      <p class="sub" style="margin:8px 0 8px;">Set this to the real day you started your 8-week plan.</p>
+      <input type="date" value="${STATE.startDate||''}" onchange="STATE.startDate=this.value;Store.set('startDate',STATE.startDate);render()">
+    </div>
+    <div class="card" style="margin-bottom:14px;max-width:420px;">
+      <div class="h2">Backup & Restore</div>
+      <p class="sub" style="margin:8px 0 12px;">Download a JSON backup of all your progress, or restore from a previous backup. Use this to move between devices or browsers.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn primary" onclick="exportProgress()">⬇ Download backup</button>
+        <button class="btn" onclick="importProgress()">⬆ Restore from file</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px;max-width:420px;">
+      <div class="h2">Install as App</div>
+      <p class="sub" style="margin:8px 0 12px;line-height:1.7;">On iPhone: tap the <b>Share</b> button in Safari → <b>Add to Home Screen</b>.<br>On Android: tap the browser menu → <b>Install app</b> or <b>Add to Home Screen</b>.</p>
+    </div>
+    <div class="card" style="max-width:420px;">
+      <div class="h2">Storage</div>
+      <p class="sub" style="margin:8px 0 12px;">${hasClaudeStorage? "Saved in Claude artifact storage — persists across sessions." : "Saved in this browser's localStorage."}</p>
+      <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="resetAll()">Reset all progress</button>
+    </div>
+  </div>`;
+}
+async function resetAll(){
+  if(!confirm("This clears all progress, XP, streaks, mistakes and reviews. Continue?")) return;
+  STATE = {topicDone:{},ttDone:{},mistakes:[],reviews:[],xp:0,streak:0,lastActive:null,studyLog:{},quizStats:{correct:0,total:0},examDate:STATE.examDate,flashCache:{}};
+  for(const k of ["topicDone","ttDone","mistakes","reviews","xp","streak","lastActive","studyLog","quizStats"]) await Store.set(k, STATE[k]);
+  toast("Progress reset");
+  render();
+}
+
+/* ---------- Render ---------- */
+function render(){
+  const pages = {dashboard:pageDashboard, strategy:pageStrategy, timetable:pageTimetable, topics:pageTopics, lab:pageLab, mistakes:pageMistakes, revision:pageRevision, analytics:pageAnalytics, settings:pageSettings};
+  document.getElementById("app").innerHTML = `
+    <div class="sidebar">${renderSidebar()}</div>
+    <div class="main">
+      <div id="vitals-mount">${renderVitals()}</div>
+      <div class="content">${(pages[ROUTE]||pageDashboard)()}</div>
+    </div>
+    ${renderBottomNav()}`;
+}
+function refreshVitals(){ document.getElementById("vitals-mount").innerHTML = renderVitals(); }
+setInterval(()=>{ scanPhase += 4; const m=document.getElementById("vitals-mount"); if(m) refreshVitals(); }, 80);
+
+/* ---------- PWA — Manifest (inline blob) ---------- */
+function injectManifest(){
+  const manifest = {
+    name:"VITALS — FMGE Command Center",
+    short_name:"VITALS",
+    description:"Elite FMGE study portal with 8-week timetable, AI tutor, spaced repetition & mistake notebook.",
+    start_url:".",
+    display:"standalone",
+    background_color:"#0A0E12",
+    theme_color:"#0A0E12",
+    orientation:"any",
+    icons:[
+      {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%2321C7B0'/%3E%3Ctext x='256' y='340' font-size='260' font-family='Arial Black' font-weight='900' text-anchor='middle' fill='%230A0E12'%3EV%3C/text%3E%3C/svg%3E", sizes:"512x512", type:"image/svg+xml", purpose:"any maskable"}
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"});
+  const url  = URL.createObjectURL(blob);
+  document.getElementById("pwa-manifest").href = url;
+}
+
+/* ---------- PWA — Service Worker (offline cache) ---------- */
+function registerSW(){
+  if(!("serviceWorker" in navigator)) return;
+  const swCode = `
+const CACHE = "vitals-v1";
+const ASSETS = [self.location.href.replace(/\\/sw-[\\w]+\\.js$/,"")];
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(()=>{}));
+  self.skipWaiting();
+});
+self.addEventListener("activate", e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener("fetch", e => {
+  if(e.request.method !== "GET") return;
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+    const clone = res.clone();
+    caches.open(CACHE).then(c => c.put(e.request, clone));
+    return res;
+  }).catch(()=>caches.match(e.request))));
+});`;
+  const blob = new Blob([swCode],{type:"application/javascript"});
+  const url  = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+
+/* ---------- Bottom nav (mobile) ---------- */
+const BNAV = [
+  {id:"dashboard", ico:"◈", label:"Home"},
+  {id:"timetable", ico:"▦", label:"Plan"},
+  {id:"topics",    ico:"▤", label:"Topics"},
+  {id:"lab",       ico:"✦", label:"AI Lab"},
+  {id:"mistakes",  ico:"✕", label:"Errors"},
+];
+function renderBottomNav(){
+  return `<nav class="bottom-nav" id="bottom-nav">
+    ${BNAV.map(n=>`<button class="bnav-item ${ROUTE===n.id?'active':''}" onclick="nav('${n.id}')">
+      <span class="bico">${n.ico}</span>${n.label}
+    </button>`).join("")}
+  </nav>`;
+}
+
+/* ---------- Export / Import ---------- */
+function exportProgress(){
+  const data = {topicDone:STATE.topicDone, ttDone:STATE.ttDone, mistakes:STATE.mistakes, reviews:STATE.reviews, xp:STATE.xp, streak:STATE.streak, lastActive:STATE.lastActive, quizStats:STATE.quizStats, examDate:STATE.examDate, startDate:STATE.startDate};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="vitals-backup-"+todayStr()+".json"; a.click();
+  toast("Backup downloaded");
+}
+function importProgress(){
+  const inp = document.createElement("input"); inp.type="file"; inp.accept=".json";
+  inp.onchange = async e => {
+    try{
+      const txt = await e.target.files[0].text();
+      const d = JSON.parse(txt);
+      const keys = ["topicDone","ttDone","mistakes","reviews","xp","streak","lastActive","quizStats","examDate","startDate"];
+      for(const k of keys){ if(d[k]!==undefined){ STATE[k]=d[k]; await Store.set(k,d[k]); }}
+      toast("Progress restored ✓"); render();
+    }catch(err){ toast("Import failed — invalid file"); }
+  };
+  inp.click();
+}
+
+/* ---------- Boot ---------- */
+(async function(){
+  await loadState();
+  if(!STATE.startDate){ STATE.startDate=todayStr(); await Store.set("startDate",STATE.startDate); }
+  injectManifest();
+  registerSW();
+  render();
+})();
+</script>
+</body>
+</html>
